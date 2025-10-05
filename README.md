@@ -75,7 +75,7 @@ carbonreducer/
 │   ├── architecture.md
 │   ├── api_spec.md
 │   └── ui_wireframes.md
-├── .env.example
+├── .env
 ├── docker-compose.yml
 ├── LICENSE
 └── README.md
