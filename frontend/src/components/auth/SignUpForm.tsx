@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { auth, googleProvider } from "../../firebaseConfig";
+import { auth, googleProvider, twitterProvider } from "../../firebaseConfig";
 
 
 interface SignUpFormData {
@@ -54,6 +54,23 @@ export default function SignUpForm(): React.ReactElement {
     } catch (error) {
       console.error("Google Sign-In Error:", error);
       alert("Google Sign-in failed. Please try again.");
+    }
+  };
+
+  const handleTwitterSignUp = async () => {
+    try {
+      const result = await signInWithPopup(auth, twitterProvider);
+      const user = result.user;
+
+      // Store user in localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+      navigate("/");
+
+      // Optional friendly alert/toast
+      alert(`Welcome, ${user.displayName || "User"}! Redirecting to dashboard...`);
+    } catch (error) {
+      console.error("Twitter Sign-In Error:", error);
+      alert("Twitter Sign-in failed. Please try again.");
     }
   };
   const validate = (): boolean => {
@@ -277,7 +294,11 @@ export default function SignUpForm(): React.ReactElement {
               Sign up with Google
             </button>
 
-            <button className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+            <button 
+            onClick={handleTwitterSignUp}
+            type="button"
+            className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+            
               <svg
                 width="21"
                 className="fill-current"
