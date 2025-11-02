@@ -6,7 +6,8 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../../firebaseConfig"; // assumed existing file
+import { auth } from "../../firebaseConfig";
+import { setUserCookie } from "../../utils/auth"; // ✅ new import
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -21,7 +22,6 @@ export default function SignInForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  
 
   // --- GOOGLE LOGIN ---
   const handleGoogleSignIn = async () => {
@@ -31,10 +31,22 @@ export default function SignInForm() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("Google user:", user);
-      navigate("/"); 
+
+      // ✅ Save user + token in cookies
+      const userObj = {
+        uid: user.uid,
+        email: user.email,
+        fname: user.displayName?.split(" ")[0] || "",
+        lname: user.displayName?.split(" ")[1] || "",
+      };
+      const token = await user.getIdToken();
+      setUserCookie(userObj, token);
+
+      alert(`Welcome back, ${user.displayName || "User"}!`);
+      navigate("/");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Google sign-in error:", err);
+      setError("Google sign-in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -48,10 +60,22 @@ export default function SignInForm() {
       const provider = new TwitterAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("Twitter user:", user);
+
+      // ✅ Save user + token in cookies
+      const userObj = {
+        uid: user.uid,
+        email: user.email,
+        fname: user.displayName?.split(" ")[0] || "",
+        lname: user.displayName?.split(" ")[1] || "",
+      };
+      const token = await user.getIdToken();
+      setUserCookie(userObj, token);
+
+      alert(`Welcome back, ${user.displayName || "User"}!`);
       navigate("/");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Twitter sign-in error:", err);
+      setError("Twitter sign-in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -64,10 +88,23 @@ export default function SignInForm() {
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Email login:", result.user);
+      const user = result.user;
+
+      // ✅ Save user + token in cookies
+      const userObj = {
+        uid: user.uid,
+        email: user.email,
+      };
+      const token = await user.getIdToken();
+      setUserCookie(userObj, token);
+
+      alert(`Welcome back, ${email}!`);
       navigate("/");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Email sign-in error:", err);
+      if (err.code === "auth/user-not-found") setError("No account found for this email.");
+      else if (err.code === "auth/wrong-password") setError("Incorrect password.");
+      else setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }

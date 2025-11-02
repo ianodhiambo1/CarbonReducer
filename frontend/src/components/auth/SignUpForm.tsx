@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom"; // ✅ fixed import
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -9,7 +9,7 @@ import {
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { auth, googleProvider, twitterProvider } from "../../firebaseConfig";
-
+import { setUserCookie } from "../../utils/auth"; // ✅ cookies helper
 
 interface SignUpFormData {
   fname: string;
@@ -33,46 +33,59 @@ export default function SignUpForm(): React.ReactElement {
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name as FieldKey]: undefined, firebase: undefined }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name as FieldKey]: undefined, firebase: undefined }));
   };
-  
+
+  // ✅ Google sign-up → save cookies and go to home
   const handleGoogleSignUp = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-  
-      // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate("/");
-  
-      // Optional friendly toast/alert
+
+      const userObj = {
+        uid: user.uid,
+        email: user.email,
+        fname: user.displayName?.split(" ")[0] || "",
+        lname: user.displayName?.split(" ")[1] || "",
+      };
+      const token = await user.getIdToken();
+      setUserCookie(userObj, token);
+
       alert(`Welcome, ${user.displayName || "User"}! Redirecting to dashboard...`);
+      navigate("/"); // ✅ Go to homepage
     } catch (error) {
       console.error("Google Sign-In Error:", error);
       alert("Google Sign-in failed. Please try again.");
     }
   };
 
+  // ✅ Twitter sign-up → save cookies and go to home
   const handleTwitterSignUp = async () => {
     try {
       const result = await signInWithPopup(auth, twitterProvider);
       const user = result.user;
 
-      // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate("/");
+      const userObj = {
+        uid: user.uid,
+        email: user.email,
+        fname: user.displayName?.split(" ")[0] || "",
+        lname: user.displayName?.split(" ")[1] || "",
+      };
+      const token = await user.getIdToken();
+      setUserCookie(userObj, token);
 
-      // Optional friendly alert/toast
       alert(`Welcome, ${user.displayName || "User"}! Redirecting to dashboard...`);
+      navigate("/"); // ✅ Go to homepage
     } catch (error) {
       console.error("Twitter Sign-In Error:", error);
       alert("Twitter Sign-in failed. Please try again.");
     }
   };
+
   const validate = (): boolean => {
     const newErrors: Errors = {};
     if (!formData.fname.trim()) newErrors.fname = "First name is required";
@@ -91,13 +104,14 @@ export default function SignUpForm(): React.ReactElement {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Email sign-up → DO NOT save cookies, redirect to /signin
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     try {
       setLoading(true);
-      // ✅ Create user with Firebase
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
@@ -105,7 +119,6 @@ export default function SignUpForm(): React.ReactElement {
       );
       const user = userCredential.user;
 
-      // Store in localStorage for dev/mock session handling
       const userObj = {
         uid: user.uid,
         email: user.email,
@@ -113,23 +126,17 @@ export default function SignUpForm(): React.ReactElement {
         lname: formData.lname,
       };
 
-      localStorage.setItem("user", JSON.stringify(userObj));
-      localStorage.setItem("auth_token", await user.getIdToken());
-      localStorage.setItem("current_user", JSON.stringify(userObj));
-
-      alert(`Welcome, ${formData.fname}! Your account has been created.`);
-      navigate("/signin");
+      // 🚫 Do NOT save cookies here
+      alert(`Welcome, ${userObj.fname}! Your account has been created. Please sign in.`);
+      navigate("/signin"); // ✅ Redirect to sign in
     } catch (error: any) {
       console.error("Firebase Sign-Up Error:", error);
       let msg = "Sign-up failed. Please try again.";
-      if (error.code === "auth/email-already-in-use")
-        msg = "Email already registered.";
-      else if (error.code === "auth/invalid-email")
-        msg = "Invalid email address.";
-      else if (error.code === "auth/weak-password")
-        msg = "Password must be at least 6 characters.";
+      if (error.code === "auth/email-already-in-use") msg = "Email already registered.";
+      else if (error.code === "auth/invalid-email") msg = "Invalid email address.";
+      else if (error.code === "auth/weak-password") msg = "Password must be at least 6 characters.";
 
-      setErrors(prev => ({ ...prev, firebase: msg }));
+      setErrors((prev) => ({ ...prev, firebase: msg }));
     } finally {
       setLoading(false);
     }
