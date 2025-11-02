@@ -1,11 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { useNavigate  } from "react-router";
 import { handleLogout } from "../../utils/logout"; 
+import Cookies from "js-cookie";
+import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 
 export default function UserDropdown() {
+    const [user, setUser] = useState<{
+    fname?: string;
+    lname?: string;
+    email?: string | null;
+  }>({});
+
+  useEffect(() => {
+    // ✅ 1. Try to load from cookies first
+    const cookieData = Cookies.get("user");
+    if (cookieData) {
+      try {
+        const parsed = JSON.parse(cookieData);
+        setUser({
+          fname: parsed.fname || "",
+          lname: parsed.lname || "",
+          email: parsed.email || "",
+        });
+      } catch (err) {
+        console.error("Error parsing user cookie:", err);
+      }
+    }
+
+    // ✅ 2. Also listen to Firebase user (fallback if cookie missing/outdated)
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          fname: firebaseUser.displayName?.split(" ")[0] || user.fname,
+          lname: firebaseUser.displayName?.split(" ")[1] || user.lname,
+          email: firebaseUser.email,
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   function toggleDropdown() {
@@ -22,10 +60,12 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src="/images/user/owner.jpg" alt="User" />
+          <img src="/images/user/user.jpg" alt="User" />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">{user.fname || user.lname
+          ? `${user.fname ?? ""} ${user.lname ?? ""}`.trim()
+          : "Anonymous User"}</span>
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -52,13 +92,15 @@ export default function UserDropdown() {
         className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
       >
         <div>
-          <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
-          </span>
-          <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
-          </span>
-        </div>
+      <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+        {user.fname || user.lname
+          ? `${user.fname ?? ""} ${user.lname ?? ""}`.trim()
+          : "Anonymous User"}
+      </span>
+      <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
+        {user.email ?? "No email found"}
+      </span>
+    </div>
 
         <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
           <li>
@@ -137,7 +179,7 @@ export default function UserDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        <button
+<button
       onClick={() => handleLogout(navigate)}
       className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
     >

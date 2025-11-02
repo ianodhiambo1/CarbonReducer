@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router"; 
 import {
   GoogleAuthProvider,
   TwitterAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
-import { setUserCookie } from "../../utils/auth"; // ✅ new import
+import { doc, getDoc } from "firebase/firestore"; // ✅ Firestore imports
+import { auth, db } from "../../firebaseConfig"; // ✅ include db export in firebaseConfig
+import { setUserCookie } from "../../utils/auth";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -23,6 +24,23 @@ export default function SignInForm() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // 🔹 Helper to fetch full user data from Firestore
+  const fetchUserProfile = async (uid: string) => {
+    try {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        console.warn("No user profile found in Firestore for:", uid);
+        return {};
+      }
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      return {};
+    }
+  };
+
   // --- GOOGLE LOGIN ---
   const handleGoogleSignIn = async () => {
     setError("");
@@ -32,17 +50,21 @@ export default function SignInForm() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // ✅ Save user + token in cookies
+      // ✅ Try to fetch additional user data
+      const extraData = await fetchUserProfile(user.uid);
+
       const userObj = {
         uid: user.uid,
         email: user.email,
-        fname: user.displayName?.split(" ")[0] || "",
-        lname: user.displayName?.split(" ")[1] || "",
+        fname: user.displayName?.split(" ")[0] || extraData?.fname || "",
+        lname: user.displayName?.split(" ")[1] || extraData?.lname || "",
+        phone: extraData?.phone || "",
       };
+
       const token = await user.getIdToken();
       setUserCookie(userObj, token);
 
-      alert(`Welcome back, ${user.displayName || "User"}!`);
+      alert(`Welcome back, ${user.displayName || user.email}!`);
       navigate("/");
     } catch (err: any) {
       console.error("Google sign-in error:", err);
@@ -61,17 +83,20 @@ export default function SignInForm() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // ✅ Save user + token in cookies
+      const extraData = await fetchUserProfile(user.uid);
+
       const userObj = {
         uid: user.uid,
         email: user.email,
-        fname: user.displayName?.split(" ")[0] || "",
-        lname: user.displayName?.split(" ")[1] || "",
+        fname: user.displayName?.split(" ")[0] || extraData?.fname || "",
+        lname: user.displayName?.split(" ")[1] || extraData?.lname || "",
+        phone: extraData?.phone || "",
       };
+
       const token = await user.getIdToken();
       setUserCookie(userObj, token);
 
-      alert(`Welcome back, ${user.displayName || "User"}!`);
+      alert(`Welcome back, ${user.displayName || user.email}!`);
       navigate("/");
     } catch (err: any) {
       console.error("Twitter sign-in error:", err);
@@ -90,15 +115,21 @@ export default function SignInForm() {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
 
-      // ✅ Save user + token in cookies
+      // ✅ Fetch extra data from Firestore
+      const extraData = await fetchUserProfile(user.uid);
+
       const userObj = {
         uid: user.uid,
         email: user.email,
+        fname: extraData?.fname || "",
+        lname: extraData?.lname || "",
+        phone: extraData?.phone || "",
       };
+
       const token = await user.getIdToken();
       setUserCookie(userObj, token);
 
-      alert(`Welcome back, ${email}!`);
+      alert(`Welcome back, ${userObj.fname || user.email}!`);
       navigate("/");
     } catch (err: any) {
       console.error("Email sign-in error:", err);
@@ -109,7 +140,6 @@ export default function SignInForm() {
       setLoading(false);
     }
   };
-
   return (
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
