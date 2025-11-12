@@ -16,11 +16,11 @@ The system aims to promote **sustainable energy usage** by offering intelligent 
 | Status | Feature | Description |
 |:-------:|----------|-------------|
 | ⭕ | **IoT Data Pipeline** | Collects and transmits real-time energy usage data from smart home devices. |
-| ⭕ | **Machine Learning Engine** | Uses models like **Random Forest**, **XGBoost**, and **LSTM** to predict consumption and optimize carbon impact. |
-| ⭕ | **Optimization Layer** | Employs **Optuna** for hyperparameter tuning and **OR-Tools** for scheduling optimization. |
-| ⭕ | **Dashboard (Current Phase)** | User-facing dashboard with data visualization, analytics, and recommendation widgets. |
-| 🔄 | **Authentication & MFA** | Implements secure login using **JWT**, **SMS-based verification**, and **Authenticator App MFA**. |
-| ⭕ | **Backend API** | RESTful APIs for model serving, IoT data ingestion, and dashboard integration. |
+| ✅ | **Machine Learning Engine** | Uses models like **Random Forest**, **XGBoost**, and **LSTM** to predict consumption and optimize carbon impact. |
+| ✅ | **Optimization Layer** | Employs **Optuna** for hyperparameter tuning and **OR-Tools** for scheduling optimization. |
+| ✅ | **Dashboard** | User-facing dashboard with data visualization, analytics, and recommendation widgets. |
+| ✅ | **Authentication & MFA** | Implements secure login using **JWT**, **SMS-based verification**, and **Authenticator App MFA**. |
+| 🔄 | **Backend API (Current Phase)** | RESTful APIs for model serving, IoT data ingestion, and dashboard integration. |
 
 ---
 
