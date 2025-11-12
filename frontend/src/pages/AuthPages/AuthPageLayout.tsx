@@ -21,12 +21,13 @@ export default function AuthLayout({
                 <img
                   width={231}
                   height={48}
-                  src="/images/logo/auth-logo.svg"
+                  src="/images/carbonlogo/original-nobg.png"
                   alt="Logo"
                 />
               </Link>
               <p className="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                Carbon Reducer: Optimising Your Home's Carbon Footprint with
+                Smart Technology and Machine Learning
               </p>
             </div>
           </div>
