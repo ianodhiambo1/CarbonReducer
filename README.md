@@ -15,12 +15,12 @@ The system aims to promote **sustainable energy usage** by offering intelligent 
 ### 🧠 Core Features (Planned & In Progress)
 | Status | Feature | Description |
 |:-------:|----------|-------------|
-| ⭕ | **IoT Data Pipeline** | Collects and transmits real-time energy usage data from smart home devices. |
+| ✅ | **IoT Data Pipeline** | Collects and transmits real-time energy usage data from smart home devices. |
 | ✅ | **Machine Learning Engine** | Uses models like **Random Forest**, **XGBoost**, and **LSTM** to predict consumption and optimize carbon impact. |
 | ✅ | **Optimization Layer** | Employs **Optuna** for hyperparameter tuning and **OR-Tools** for scheduling optimization. |
 | ✅ | **Dashboard** | User-facing dashboard with data visualization, analytics, and recommendation widgets. |
 | ✅ | **Authentication & MFA** | Implements secure login using **JWT**, **SMS-based verification**, and **Authenticator App MFA**. |
-| 🔄 | **Backend API (Current Phase)** | RESTful APIs for model serving, IoT data ingestion, and dashboard integration. |
+| ✅ | **Backend API (Current Phase)** | RESTful APIs for model serving, IoT data ingestion, and dashboard integration. |
 
 ---
 
@@ -48,7 +48,7 @@ The system aims to promote **sustainable energy usage** by offering intelligent 
 
 ---
 
-### 📊 Dashboard Modules (Planned)
+### 📊 Dashboard Modules 
 - **Energy Monitoring** – Real-time device-level usage visualization  
 - **Carbon Forecasting** – Predictive carbon intensity per hour/day  
 - **Smart Scheduling** – Optimal appliance runtime recommendations  
@@ -56,7 +56,7 @@ The system aims to promote **sustainable energy usage** by offering intelligent 
 
 ---
 
-### 📁 Project Structure (Initial)
+### 📁 Project Structure 
 ```bash
 carbonreducer/
 ├── backend/
@@ -130,15 +130,6 @@ AUTH_APP_SECRET=
 - `docs/api_spec.md` – REST API endpoints and payloads  
 - `docs/ml_pipeline.md` – Model training and optimization workflows  
 - `docs/security.md` – MFA and encryption strategy  
-
----
-
-### 🧠 Roadmap
-- [ ] Implement secure login with SMS + Authenticator MFA  
-- [ ] Connect backend ML predictions to dashboard  
-- [ ] Integrate Optuna for energy optimization tuning  
-- [ ] Deploy MQTT IoT simulation  
-- [ ] Launch v1.0 on Docker + Render / Railway
 
 ---
 
